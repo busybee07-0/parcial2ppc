@@ -1,2 +1,135 @@
 package com.javierf.planahorroapp.ui.screens
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.javierf.planahorroapp.data.remote.dto.MemberDto
+import com.javierf.planahorroapp.viewmodel.PaymentViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegisterPaymentScreen(
+    members: List<MemberDto>,
+    planId: String,
+    viewModel: PaymentViewModel,
+    onPaymentRegistered: () -> Unit,
+    onBack: () -> Unit
+) {
+    // estado
+    var expanded by remember { mutableStateOf(false) }
+    var selectedMember by remember { mutableStateOf<MemberDto?>(null) }
+    var amountText by remember { mutableStateOf("") }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Registrar pago") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+
+            // 🔍 Para verificar que SÍ llegan miembros desde el backend
+            Text(text = "Miembros recibidos: ${members.size}")
+            Spacer(modifier = Modifier.height(8.dp))
+
+            //--------------------------------------------------------
+            // SELECCIÓN DE MIEMBRO (Dropdown simple con Box)
+            //--------------------------------------------------------
+            Box {
+                OutlinedTextField(
+                    value = selectedMember?.name ?: "",
+                    onValueChange = {},
+                    label = { Text("Miembro") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = true }, // MUY IMPORTANTE
+                    readOnly = true,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = if (expanded)
+                                Icons.Filled.KeyboardArrowUp
+                            else
+                                Icons.Filled.KeyboardArrowDown,
+                            contentDescription = null
+                        )
+                    }
+                )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    members.forEach { member ->
+                        DropdownMenuItem(
+                            text = { Text(member.name) },
+                            onClick = {
+                                selectedMember = member
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            //--------------------------------------------------------
+            // MONTO
+            //--------------------------------------------------------
+            OutlinedTextField(
+                value = amountText,
+                onValueChange = { amountText = it },
+                label = { Text("Monto") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                )
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            //--------------------------------------------------------
+            // BOTÓN
+            //--------------------------------------------------------
+            Button(
+                onClick = {
+                    val amount = amountText.toDoubleOrNull()
+
+                    if (selectedMember != null && amount != null) {
+                        viewModel.registerPayment(
+                            memberId = selectedMember!!._id,
+                            planId = planId,
+                            amount = amount,
+                            onSuccess = onPaymentRegistered
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+            ) {
+                Text("Registrar")
+            }
+        }
+    }
+}

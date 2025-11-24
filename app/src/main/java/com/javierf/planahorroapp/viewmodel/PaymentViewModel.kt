@@ -2,27 +2,33 @@ package com.javierf.planahorroapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import com.javierf.planahorroapp.data.repository.SavingsRepository
+import kotlinx.coroutines.launch
 
 class PaymentViewModel(
     private val repository: SavingsRepository = SavingsRepository()
 ) : ViewModel() {
 
-    private val _success = MutableStateFlow(false)
-    val success: StateFlow<Boolean> = _success
-
-    fun registerPayment(memberId: String, planId: String, amount: Double) {
+    fun registerPayment(
+        memberId: String,
+        planId: String,
+        amount: Double,
+        onSuccess: () -> Unit
+    ) {
         viewModelScope.launch {
             try {
-                repository.createPayment(memberId, planId, amount)
-                _success.value = true
+                repository.createPayment(
+                    memberId = memberId,
+                    planId = planId,
+                    amount = amount
+                )
+
+                onSuccess() // Notifica a la UI
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                _success.value = false
             }
         }
     }
 }
+
