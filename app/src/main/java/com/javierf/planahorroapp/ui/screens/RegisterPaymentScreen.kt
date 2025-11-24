@@ -14,6 +14,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.javierf.planahorroapp.data.remote.dto.MemberDto
 import com.javierf.planahorroapp.viewmodel.PaymentViewModel
+import com.javierf.planahorroapp.ui.utils.formatMoneyInput
+import com.javierf.planahorroapp.ui.utils.parseMoneyToDouble
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,12 +98,12 @@ fun RegisterPaymentScreen(
             // ------------------------------
             OutlinedTextField(
                 value = amountText,
-                onValueChange = { amountText = it },
+                onValueChange = { newValue ->
+                    amountText = formatMoneyInput(newValue)
+                },
                 label = { Text("Monto") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                )
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -111,7 +113,7 @@ fun RegisterPaymentScreen(
             // ------------------------------
             Button(
                 onClick = {
-                    val amount = amountText.toDoubleOrNull()
+                    val amount = parseMoneyToDouble(amountText)
 
                     if (selectedMember != null && amount != null) {
                         viewModel.registerPayment(

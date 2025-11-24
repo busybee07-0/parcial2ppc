@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Alignment
 import com.javierf.planahorroapp.viewmodel.PlanDetailViewModel
+import com.javierf.planahorroapp.ui.utils.formatMoney
+import com.javierf.planahorroapp.ui.utils.formatDate
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,8 +124,8 @@ fun PlanDetailScreen(
                             .padding(vertical = 6.dp)
                     ) {
                         Column(Modifier.padding(12.dp)) {
-                            Text("Monto: ${payment.amount}", fontSize = 18.sp)
-                            Text("Fecha: ${payment.date}", fontSize = 14.sp)
+                            Text("Monto: ${formatMoney(payment.amount)}", fontSize = 18.sp)
+                            Text("Fecha: ${formatDate(payment.date)}", fontSize = 14.sp)
                         }
                     }
                 }
