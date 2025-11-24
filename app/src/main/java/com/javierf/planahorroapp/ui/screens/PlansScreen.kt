@@ -20,9 +20,9 @@ import com.javierf.planahorroapp.viewmodel.PlansViewModel
 @Composable
 fun PlansScreen(
     viewModel: PlansViewModel,
-    onPlanClick: (String) -> Unit
+    onPlanClick: (String) -> Unit,
+    onCreatePlan: () -> Unit
 ) {
-    // 🔥 AHORA SÍ recolecta el estado del ViewModel
     val plans = viewModel.plans.collectAsState()
     val loading = viewModel.isLoading.collectAsState()
 
@@ -45,7 +45,23 @@ fun PlansScreen(
                 .padding(16.dp)
         ) {
 
-            Spacer(modifier = Modifier.height(8.dp))
+            //---------------------------------------------------------
+            // BOTÓN "CREAR PLAN"
+            //---------------------------------------------------------
+            Button(
+                onClick = { onCreatePlan() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("Crear plan", fontSize = 18.sp)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Planes de ahorro",
@@ -55,7 +71,6 @@ fun PlansScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔥 Carga o lista
             if (loading.value) {
                 Box(
                     modifier = Modifier.fillMaxSize(),

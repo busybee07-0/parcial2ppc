@@ -14,6 +14,8 @@ import com.javierf.planahorroapp.ui.screens.RegisterPaymentScreen
 import com.javierf.planahorroapp.viewmodel.PaymentViewModel
 import com.javierf.planahorroapp.viewmodel.PlanDetailViewModel
 import com.javierf.planahorroapp.viewmodel.PlansViewModel
+import com.javierf.planahorroapp.ui.screens.CreatePlanScreen
+
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -40,6 +42,9 @@ fun AppNavGraph(navController: NavHostController) {
                 viewModel = vm,
                 onPlanClick = { planId ->
                     navController.navigate("planDetail/$planId")
+                },
+                onCreatePlan = {
+                    navController.navigate("createPlan")
                 }
             )
         }
@@ -69,7 +74,24 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         //---------------------------------------------------------
-        // 3. REGISTRAR PAGO (CON VIEWMODEL COMPARTIDO)
+        // 3. CREAR PLAN (NUEVA PANTALLA)
+        //---------------------------------------------------------
+        composable("createPlan") {
+
+            CreatePlanScreen(
+                onBack = { navController.popBackStack() },
+                onPlanCreated = { name, motive, target, months, members ->
+
+                    // Cuando agregues tu backend aquí lo conectas:
+                    // viewModel.createPlan(...)
+
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        //---------------------------------------------------------
+        // 4. REGISTRAR PAGO
         //---------------------------------------------------------
         composable("registerPayment/{planId}") { backStackEntry ->
 
@@ -80,7 +102,6 @@ fun AppNavGraph(navController: NavHostController) {
                 navController.getBackStackEntry("planDetail/{planId}")
             }
 
-            // 🔥 Usamos ese backstack como owner del ViewModel de detalle
             val detailVM: PlanDetailViewModel = viewModel(
                 viewModelStoreOwner = planDetailEntry
             )
@@ -98,13 +119,12 @@ fun AppNavGraph(navController: NavHostController) {
 
                 onPaymentRegistered = {
                     navController.popBackStack()
-                    detailVM.loadPlan(planId) // Recargamos el detalle
+                    detailVM.loadPlan(planId) // 🔥 Recargar
                 },
 
-                onBack = {
-                    navController.popBackStack()
-                }
+                onBack = { navController.popBackStack() }
             )
         }
     }
 }
+
