@@ -6,18 +6,23 @@ import java.util.Locale
 import java.util.TimeZone
 
 
-fun formatMoneyInput(raw: String): String {
+fun formatMoneyNumber(raw: String): String {
     if (raw.isEmpty()) return ""
+
+    // Quitar TODO excepto números
     val clean = raw.filter { it.isDigit() }
+
     if (clean.isEmpty()) return ""
 
     val number = clean.toLong()
+
     val formatter = NumberFormat.getNumberInstance(Locale("es", "CO"))
     return formatter.format(number)
 }
 
-fun parseMoneyToDouble(formatted: String): Double {
-    val clean = formatted.replace(".", "")
+// Convierte "25.000" → 25000.0
+fun parseFormattedNumberToDouble(text: String): Double {
+    val clean = text.replace(".", "").trim()
     return clean.toDoubleOrNull() ?: 0.0
 }
 // ---------------------------------------------------

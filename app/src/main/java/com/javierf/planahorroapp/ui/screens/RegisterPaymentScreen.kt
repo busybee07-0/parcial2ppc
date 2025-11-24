@@ -14,8 +14,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.javierf.planahorroapp.data.remote.dto.MemberDto
 import com.javierf.planahorroapp.viewmodel.PaymentViewModel
-import com.javierf.planahorroapp.ui.utils.formatMoneyInput
-import com.javierf.planahorroapp.ui.utils.parseMoneyToDouble
+import com.javierf.planahorroapp.ui.utils.formatMoneyNumber
+import com.javierf.planahorroapp.ui.utils.parseFormattedNumberToDouble
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,18 +93,25 @@ fun RegisterPaymentScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ------------------------------
-            //        MONTO
-            // ------------------------------
+            var cleanNumber by remember { mutableStateOf("") }
+
             OutlinedTextField(
-                value = amountText,
+                value = cleanNumber,
                 onValueChange = { newValue ->
-                    amountText = formatMoneyInput(newValue)
+                    cleanNumber = formatMoneyNumber(newValue)
                 },
                 label = { Text("Monto") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                leadingIcon = {
+                    Text(
+                        text = "$",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
+                singleLine = true
             )
+
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -113,7 +120,7 @@ fun RegisterPaymentScreen(
             // ------------------------------
             Button(
                 onClick = {
-                    val amount = parseMoneyToDouble(amountText)
+                    val amount = parseFormattedNumberToDouble(cleanNumber)
 
                     if (selectedMember != null && amount != null) {
                         viewModel.registerPayment(
