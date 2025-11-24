@@ -1,26 +1,32 @@
 package com.javierf.planahorroapp.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.javierf.planahorroapp.ui.utils.formatMoneyNumber
+import com.javierf.planahorroapp.ui.utils.parseFormattedNumberToDouble
+import com.javierf.planahorroapp.viewmodel.CreatePlanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePlanScreen(
-    onBack: () -> Unit,
-    onPlanCreated: (name:String, motive: String, target: Double, months: Int, members: Int) -> Unit
+    viewModel: CreatePlanViewModel,
+    onBack: () -> Unit
 ) {
+
     var motive by remember { mutableStateOf("") }
     var targetAmount by remember { mutableStateOf("") }
     var months by remember { mutableStateOf("") }
     var members by remember { mutableStateOf("") }
+
+    val loading = viewModel.loading.collectAsState().value
+    val error = viewModel.error.collectAsState().value
 
     Scaffold(
         topBar = {
@@ -33,71 +39,125 @@ fun CreatePlanScreen(
                 }
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
 
         Column(
             modifier = Modifier
-                .padding(paddingValues)
+                .padding(padding)
                 .padding(20.dp)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Top
         ) {
 
+            //---------------------------------------------------
+            // ERROR (si ocurre)
+            //---------------------------------------------------
+            if (error != null) {
+                Text(
+                    text = "Error: $error",
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            //---------------------------------------------------
+            // Campo: Motivo / Nombre
+            //---------------------------------------------------
             OutlinedTextField(
                 value = motive,
                 onValueChange = { motive = it },
-                label = { Text("Motivo") },
+                label = { Text("Motivo / Nombre del plan") },
+                enabled = !loading,
                 modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            //---------------------------------------------------
+            // Campo: Meta formateada
+            //---------------------------------------------------
             OutlinedTextField(
-                value = targetAmount,
-                onValueChange = { targetAmount = it },
-                label = { Text("Meta (valor)") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                value = "$" + formatMoneyNumber(targetAmount),
+                onValueChange = { newText ->
+                    val clean = newText.replace("$", "").trim()
+                    targetAmount = clean
+                },
+                label = { Text("Meta") },
+                prefix = { Text("$") },
+                enabled = !loading,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            //---------------------------------------------------
+            // Campo: Meses
+            //---------------------------------------------------
             OutlinedTextField(
                 value = months,
                 onValueChange = { months = it },
                 label = { Text("Meses") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                enabled = !loading,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            //---------------------------------------------------
+            // Campo: Miembros separados por coma
+            //---------------------------------------------------
             OutlinedTextField(
                 value = members,
                 onValueChange = { members = it },
-                label = { Text("Miembros") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                label = { Text("Miembros (separados por coma)") },
+                enabled = !loading,
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
+            //---------------------------------------------------
+            // Botón CREAR
+            //---------------------------------------------------
             Button(
                 onClick = {
-                    val target = targetAmount.toDoubleOrNull()
-                    val monthsInt = months.toIntOrNull()
-                    val membersInt = members.toIntOrNull()
 
-                    if (target != null && monthsInt != null && membersInt != null && motive.isNotBlank()) {
-                        onPlanCreated(
-                            motive,
-                            motive,
-                            target,
-                            monthsInt,
-                            membersInt
+                    val meta = parseFormattedNumberToDouble(targetAmount)
+                    val mesesInt = months.toIntOrNull()
+                    val membersList = members.split(",")
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+
+                    if (motive.isNotBlank() && meta > 0 && mesesInt != null && membersList.isNotEmpty()) {
+
+                        viewModel.createPlan(
+                            name = motive,
+                            motive = motive,
+                            targetAmount = meta,
+                            months = mesesInt,
+                            members = membersList
                         )
                     }
                 },
+                enabled = !loading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(55.dp),
-                shape = MaterialTheme.shapes.medium
+                    .height(55.dp)
             ) {
-                Text("Crear", fontSize = 18.sp)
+                if (loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Crear")
+                }
             }
         }
     }
