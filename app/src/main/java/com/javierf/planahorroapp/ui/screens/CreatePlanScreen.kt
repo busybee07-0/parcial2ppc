@@ -1,17 +1,21 @@
 package com.javierf.planahorroapp.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.javierf.planahorroapp.ui.utils.formatMoneyNumber
 import com.javierf.planahorroapp.ui.utils.parseFormattedNumberToDouble
 import com.javierf.planahorroapp.viewmodel.CreatePlanViewModel
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,8 +34,14 @@ fun CreatePlanScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Crear plan") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Crear plan",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
@@ -45,85 +55,107 @@ fun CreatePlanScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(20.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Top
+                .fillMaxSize()
         ) {
 
             //---------------------------------------------------
-            // ERROR (si ocurre)
+            // ERROR
             //---------------------------------------------------
             if (error != null) {
                 Text(
                     text = "Error: $error",
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             //---------------------------------------------------
-            // Campo: Motivo / Nombre
+            // TÍTULO SECCIÓN
+            //---------------------------------------------------
+            Text(
+                "Información del plan",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
+
+            //---------------------------------------------------
+            // CAMPO: Motivo / Nombre
             //---------------------------------------------------
             OutlinedTextField(
                 value = motive,
                 onValueChange = { motive = it },
                 label = { Text("Motivo / Nombre del plan") },
                 enabled = !loading,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(65.dp),
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             //---------------------------------------------------
-            // Campo: Meta formateada
+            // CAMPO: Meta formateada
             //---------------------------------------------------
             OutlinedTextField(
-                value = "$" + formatMoneyNumber(targetAmount),
+                value = formatMoneyNumber(targetAmount),
                 onValueChange = { newText ->
                     val clean = newText.replace("$", "").trim()
                     targetAmount = clean
                 },
-                label = { Text("Meta") },
+                label = { Text("Meta de ahorro") },
                 prefix = { Text("$") },
                 enabled = !loading,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(65.dp),
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             //---------------------------------------------------
-            // Campo: Meses
+            // CAMPO: Meses
             //---------------------------------------------------
             OutlinedTextField(
                 value = months,
                 onValueChange = { months = it },
-                label = { Text("Meses") },
+                label = { Text("Duración (meses)") },
                 enabled = !loading,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(65.dp),
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             //---------------------------------------------------
-            // Campo: Miembros separados por coma
+            // CAMPO: Miembros
             //---------------------------------------------------
             OutlinedTextField(
                 value = members,
                 onValueChange = { members = it },
                 label = { Text("Miembros (separados por coma)") },
                 enabled = !loading,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(65.dp),
+                shape = RoundedCornerShape(12.dp)
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             //---------------------------------------------------
-            // Botón CREAR
+            // BOTÓN CREAR (VERDE MOCKUP)
             //---------------------------------------------------
             Button(
                 onClick = {
@@ -135,7 +167,6 @@ fun CreatePlanScreen(
                         .filter { it.isNotEmpty() }
 
                     if (motive.isNotBlank() && meta > 0 && mesesInt != null && membersList.isNotEmpty()) {
-
                         viewModel.createPlan(
                             name = motive,
                             motive = motive,
@@ -144,19 +175,31 @@ fun CreatePlanScreen(
                             members = membersList
                         )
                     }
+
                 },
                 enabled = !loading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(55.dp)
+                    .height(55.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF27AE60), // verde mockup
+                    contentColor = Color.White
+                )
             ) {
+
                 if (loading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(28.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        modifier = Modifier.size(26.dp),
+                        color = Color.White,
+                        strokeWidth = 3.dp
                     )
                 } else {
-                    Text("Crear")
+                    Text(
+                        "Crear plan",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }

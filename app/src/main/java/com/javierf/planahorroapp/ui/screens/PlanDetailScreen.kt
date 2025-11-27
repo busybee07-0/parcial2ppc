@@ -3,6 +3,7 @@ package com.javierf.planahorroapp.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
@@ -17,7 +18,7 @@ import androidx.compose.ui.Alignment
 import com.javierf.planahorroapp.viewmodel.PlanDetailViewModel
 import com.javierf.planahorroapp.ui.utils.formatMoney
 import com.javierf.planahorroapp.ui.utils.formatDate
-
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,44 +47,48 @@ fun PlanDetailScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .fillMaxSize()
         ) {
 
-            //-------------------------------------------------------------
-            // TÍTULO DEL PLAN
-            //-------------------------------------------------------------
-            plan.value?.let { p ->
-                Text(
-                    text = p.name,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+            ) {
 
-                Spacer(modifier = Modifier.height(4.dp))
+                // ---------------------------------------------------------
+                // INFO DEL PLAN
+                // ---------------------------------------------------------
+                item {
+                    plan.value?.let { p ->
+                        Text(
+                            text = p.name,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("${p.months} meses", fontSize = 16.sp)
+                        Text("Meta: ${formatMoney(p.targetAmount)}", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
 
-                Text("${p.months} meses", fontSize = 16.sp)
-                Text("Meta: ${p.targetAmount}", fontSize = 16.sp)
+                    // ---------------------------------------------------------
+                    // MIEMBROS
+                    // ---------------------------------------------------------
+                    Text(
+                        text = "Miembros",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-
-            //-------------------------------------------------------------
-            // MIEMBROS
-            //-------------------------------------------------------------
-            Text(
-                text = "Miembros",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn {
                 items(members.value) { member ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp)
+                            .padding(vertical = 6.dp),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -92,66 +97,79 @@ fun PlanDetailScreen(
                             Icon(
                                 Icons.Default.Person,
                                 contentDescription = "Miembro",
-                                modifier = Modifier.size(30.dp)
+                                tint = Color(0xFF2E7D32),
+                                modifier = Modifier.size(28.dp)
                             )
-
                             Spacer(modifier = Modifier.width(12.dp))
-
-                            Text(member.name, fontSize = 18.sp)
+                            Text(member.name, fontSize = 17.sp)
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(28.dp))
+                // ---------------------------------------------------------
+                // PAGOS
+                // ---------------------------------------------------------
+                item {
+                    Spacer(modifier = Modifier.height(28.dp))
+                    Text(
+                        text = "Pagos registrados",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
-            //-------------------------------------------------------------
-            // PAGOS
-            //-------------------------------------------------------------
-            Text(
-                text = "Pagos Registrados",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn {
                 items(payments.value) { payment ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp)
+                            .padding(vertical = 6.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text("Monto: ${formatMoney(payment.amount)}", fontSize = 18.sp)
-                            Text("Fecha: ${formatDate(payment.date)}", fontSize = 14.sp)
+                        Column(Modifier.padding(14.dp)) {
+                            Text(
+                                text = formatMoney(payment.amount),
+                                color = Color(0xFF2E7D32),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = formatDate(payment.date),
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
                         }
                     }
                 }
+
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            //-------------------------------------------------------------
-            // BOTÓN REGISTRAR PAGO
-            //-------------------------------------------------------------
+            // ---------------------------------------------------------
+            // BOTÓN REGISTRAR PAGO (FIJO Y SIN CORTARSE)
+            // ---------------------------------------------------------
             Button(
                 onClick = onRegisterPayment,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(16.dp)
                     .height(50.dp),
+                shape = RoundedCornerShape(25.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color(0xFF2E7D32)
                 )
             ) {
                 Text(
                     text = "Registrar pago",
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
                 )
             }
         }
     }
 }
+
 

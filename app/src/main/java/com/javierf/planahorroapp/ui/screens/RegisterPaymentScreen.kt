@@ -12,11 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.javierf.planahorroapp.data.remote.dto.MemberDto
 import com.javierf.planahorroapp.viewmodel.PaymentViewModel
 import com.javierf.planahorroapp.ui.utils.formatMoneyNumber
 import com.javierf.planahorroapp.ui.utils.parseFormattedNumberToDouble
-
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,115 +32,167 @@ fun RegisterPaymentScreen(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedMember by remember { mutableStateOf<MemberDto?>(null) }
-    var amountText by remember { mutableStateOf("") }
+    var cleanNumber by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Registrar pago") },
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "Registrar pago",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
-        }
+        },
+        containerColor = Color(0xFFF5F5F5)   // MISMO FONDO QUE CREAR PLAN
     ) { padding ->
 
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // ------------------------------
-            //      SELECT MIEMBRO
-            // ------------------------------
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+            // CARD CENTRAL (MISMO DISEÑO QUE CREAR PLAN)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(22.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                ),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
 
-                OutlinedTextField(
-                    value = selectedMember?.name ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Miembro") },
-                    trailingIcon = {
-                        Icon(
-                            if (expanded) Icons.Filled.KeyboardArrowUp
-                            else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = null
-                        )
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
+                Column(modifier = Modifier.padding(20.dp)) {
 
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    members.forEach { member ->
-                        DropdownMenuItem(
-                            text = { Text(member.name) },
-                            onClick = {
-                                selectedMember = member
-                                expanded = false
+                    // -----------------------------------
+                    //             MIEMBRO
+                    // -----------------------------------
+                    Text(
+                        "Miembro",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded }
+                    ) {
+
+                        OutlinedTextField(
+                            value = selectedMember?.name ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = Color(0xFFCCCCCC),
+                                focusedBorderColor = Color(0xFF00A859)
+                            ),
+                            trailingIcon = {
+                                Icon(
+                                    if (expanded) Icons.Filled.KeyboardArrowUp
+                                    else Icons.Filled.KeyboardArrowDown,
+                                    contentDescription = null
+                                )
                             }
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            members.forEach { member ->
+                                DropdownMenuItem(
+                                    text = { Text(member.name) },
+                                    onClick = {
+                                        selectedMember = member
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(22.dp))
+
+                    // -----------------------------------
+                    //              MONTO
+                    // -----------------------------------
+                    Text(
+                        "Monto",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = cleanNumber,
+                        onValueChange = { cleanNumber = formatMoneyNumber(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        leadingIcon = {
+                            Text(
+                                "$",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color(0xFFCCCCCC),
+                            focusedBorderColor = Color(0xFF00A859)
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // -----------------------------------
+                    //         BOTÓN REGISTRAR
+                    // -----------------------------------
+                    Button(
+                        onClick = {
+                            val amount = parseFormattedNumberToDouble(cleanNumber)
+
+                            if (selectedMember != null && amount != null) {
+                                viewModel.registerPayment(
+                                    memberId = selectedMember!!._id,
+                                    planId = planId,
+                                    amount = amount,
+                                    onSuccess = onPaymentRegistered
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(55.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF00A859),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            "Registrar",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 18.sp
+                            )
                         )
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            var cleanNumber by remember { mutableStateOf("") }
-
-            OutlinedTextField(
-                value = cleanNumber,
-                onValueChange = { newValue ->
-                    cleanNumber = formatMoneyNumber(newValue)
-                },
-                label = { Text("Monto") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                leadingIcon = {
-                    Text(
-                        text = "$",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                },
-                singleLine = true
-            )
-
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // ------------------------------
-            //      BOTÓN REGISTRAR
-            // ------------------------------
-            Button(
-                onClick = {
-                    val amount = parseFormattedNumberToDouble(cleanNumber)
-
-                    if (selectedMember != null && amount != null) {
-                        viewModel.registerPayment(
-                            memberId = selectedMember!!._id,
-                            planId = planId,
-                            amount = amount,
-                            onSuccess = onPaymentRegistered
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp)
-            ) {
-                Text("Registrar")
-            }
         }
     }
 }
-
